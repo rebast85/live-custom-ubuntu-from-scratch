@@ -1,0 +1,67 @@
+Things I have changed from mvallim his version:
+
+--> BUILD.SH:
+
+- Converted all echo commands to fprint. Reason: echo works differently on different shells while fprint the same everywhere.
+- Bracketed and double-quoted all variables to avoid globbing and text splitting errors (so $VAR becomes "${VAR}").
+- Ran the script through shellcheck and used its suggestions to improve a few other things.
+- Converted the #write filesystem info command to 'sudo du -sx --block-size=1 chroot | cut -f1 | sudo tee image/casper/filesystem.size >/dev/null' which is a bit faster and cleaner.
+- Converted the parts that kept track of the index in the main loop. The inclusion of $(($...)) here is unnecesary (according to shellcheck and web sources).
+	from: end_index=$(($index+1))
+		  end_index=$(($start_index + 1))
+		  for ((ii=$start_index; ii<$end_index; ii++)); do
+	to:	  ((end_index = index + 1))
+		  ((end_index = start_index + 1))
+		  for ((ii = start_index; ii < end_index; ii++)); do
+
+- DATE variable now actually gets used.
+	I discovered the DATE variable was not used anywhere at all. See below for more.
+
+- DATE variable now uses local time.
+ 	This is to make the naming of the iso (see next point) less confusing. With UTC time,
+ 	I get a time that is two hours behind my local time. Now, the iso filename reflects the local time it
+ 	was generated at.
+
+- DATE variable gets used in naming of generated iso.
+  This makes it so that a new iso will not overwrite a previously generated one
+  and also makes versioning easier. Now one can know when an iso was generated right from the filename.
+
+- Changed root detection.
+	Now, the script can be run with sudo, but not in a root shell.
+	Root can still run the script with sudo however.
+	The reason to allow the script to be run with sudo is due to sudo timeouts.
+	I (and others too, methinks) would preferably run this script and let it do its thing without having to constantly eye it
+	in case it asks for sudo password again. Sudo can time out, making the script exit and leaving the iso creation process
+	in an unfinished state. Then one would have to re-run the iso creation process again. Squashfs takes a while and it is not
+	fun to have to wait for that process.
+	Hence, I want to run the script with sudo by default so it can keep going and I can do something else in the meanwhile.
+
+
+- Added extra error handling - cleanup after script error.
+	I have added a function error_cleanup(), which will get called when the script exits (due to errors or a ctrl+c for example)
+	This is done by adding a 'trap error_cleanup EXIT' right before the main loop.
+	The error_cleanup() function calls chroot_exit_teardown(), so that eventual mounted directories in chroot
+	get unmounted again. This is to prevent the script from bind-mounting several /dev instances onto chroot/dev,
+	which causes errors in the terminal for the host user.
+
+
+- Improved unmount function.
+	The chroot_exit_teardown() function as it was would cause the script to exit when it could not unmount
+	a directory. This has been fixed now with the addition of a safe_unmount() function.
+	If one directory cannot be unmounted (because of it still being used
+	or because it simply was not mounted) the script will proceed to try and unmount the rest.
+
+
+
+--> CHROOT_BUILD.SH
+
+In function setup_host:
+	- changed 'ln -s /bin/true /sbin/initctl' to 'ln -fs /bin/true /sbin/initctl'
+		This is to ensure that /sbin/initctl will get linked again. Without the -f flag,
+		the script will quit when /sbin/initcl already exists.
+
+
+In function install_pkg:
+	- Replaced 'wireless-tools' with 'iw'.
+		Wireless-tools package is no longer available and has been superseded by iw.
+
