@@ -279,3 +279,4 @@ done
 if [[ ${script_stage} == "build_iso" ]]; then
 	printf "Your live iso is ready and waiting at: %s/%s-%s.iso\n" "${SCRIPT_DIR}" "${TARGET_NAME}" "${DATE}"
 fi
+
