@@ -53,3 +53,4 @@ There already are a few hook scripts in hooks/chroot. They are used during the d
 You can edit them but it would be wise not to remove them, you would end up with a dysfunctional iso if you do so.
 
 Please see the example scripts, included in hooks/examples to get some idea of what is possible with the hook scripts.
+
