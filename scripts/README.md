@@ -25,6 +25,8 @@ Please see the configuration file for more options.
 
 ## Automation
 It is possible to automate the setup of locales, keyboard and console.
+The script can run fully unattended when using these automation options
+and will no longer stop to ask you about locales, keyboard and console configuration.
 This can be set in the config file. Please see the entries in the automation section for more information.
 
 ## How to Update
