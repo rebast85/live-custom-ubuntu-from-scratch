@@ -203,9 +203,6 @@ EOF
     # remove unused and clean up apt cache
     apt-get autoremove -y
 
-    # final touch
-    dpkg-reconfigure locales
-
     # network manager
     cat <<EOF > /etc/NetworkManager/NetworkManager.conf
 [main]
