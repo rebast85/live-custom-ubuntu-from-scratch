@@ -98,9 +98,15 @@ function install_pkg() {
     script_stage="install_pkg"
     apt-get -y upgrade
 
-	# TODO: MOVE THESE TO-BE INSTALLED PACKAGES LIST TO A CHROOT HOOK SCRIPT (hooks/chroot_001_install_default_packages.sh)
-	# REASON: Users can update/change default package list without having to edit this script.
+	# TODO: MOVE THESE TO-BE INSTALLED PACKAGES LIST TO CHROOT HOOK SCRIPTS
+	# (hooks/chroot/0001_install_standard_packages.sh)
+	# (hooks/chroot/0002_install_locales.sh)
+	# (hooks/chroot/0003_install_bootloader.sh)
+	# (hooks/chroot/0004_install_kernel.sh)
+	# (hooks/chroot/0005_install_installer.sh)
+	# REASON: Users can update/change default package lists without having to edit this script.
     # install live packages
+
     apt-get install -y \
         sudo \
         ubuntu-standard \
@@ -112,19 +118,11 @@ function install_pkg() {
         net-tools \
         wpagui \
 		iw \
-        locales \
-        grub-common \
-        grub-gfxpayload-lists \
-        grub-pc \
-        grub-pc-bin \
-        grub2-common \
-        grub-efi-amd64-signed \
-        shim-signed \
-        mtools \
-        unzip \
-        binutils
+		mtools \
+		unzip \
+		binutils
 
-    case ${TARGET_UBUNTU_VERSION} in
+	case ${TARGET_UBUNTU_VERSION} in
         "focal" | "bionic")
             apt-get install -y lupin-casper
             ;;
@@ -132,6 +130,28 @@ function install_pkg() {
             printf "Package lupin-casper is not needed. Skipping.\n"
             ;;
     esac
+
+	# Added this to automate locale generation so script can run unattended.
+    echo "${TARGET_LOCALES_GENERATE}" > /etc/locale.gen
+
+	debconf-set-selections <<EOF
+locales locales/default_environment_locale select ${TARGET_LOCALES_DEFAULT}
+locales locales/locales_to_be_generated multiselect ${TARGET_LOCALES_GENERATE}
+EOF
+
+	DEBIAN_FRONTEND=noninteractive apt-get install -y locales
+	locale-gen
+	update-locale LANG="${TARGET_LOCALES_DEFAULT}"
+
+
+	apt-get install -y \
+        grub-common \
+        grub-gfxpayload-lists \
+        grub-pc \
+        grub-pc-bin \
+        grub2-common \
+        grub-efi-amd64-signed \
+        shim-signed
 
     # install kernel
     apt-get install -y --no-install-recommends "${TARGET_KERNEL_PACKAGE}"
@@ -144,7 +164,7 @@ function install_pkg() {
         ubiquity-slideshow-ubuntu \
         ubiquity-ubuntu-artwork
 
-	# TODO: TURN THIS INTO SEPARATE CHROOT HOOK SCRIPT (hooks/chroot_002_install_custom_packages.sh)
+	# TODO: TURN THIS INTO SEPARATE CHROOT HOOK SCRIPT (hooks/chroot/0090_install_custom_packages.sh)
     # Call into config function
     customize_image
 
@@ -236,7 +256,7 @@ EOF
 
     cp -v casper/filesystem.manifest casper/filesystem.manifest-desktop
 
-	# TODO: MAKE THIS FUNCTION CALL A CHROOT HOOK SCRIPT (hooks/chroot_003_remove_packages_after_install_list.sh)
+	# TODO: MAKE THIS FUNCTION CALL A CHROOT HOOK SCRIPT (hooks/chroot/0010_remove_packages_after_install_list.sh)
     for pkg in ${TARGET_PACKAGE_REMOVE}; do
         sudo sed -i "/${pkg}/d" casper/filesystem.manifest-desktop
     done

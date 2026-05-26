@@ -111,9 +111,6 @@ In function build_image():
 
 
 --> DEFAULT_CONFIG.SH
-- Put the configurables in the beginning of the script, without the export in front of them.
-	I did this to make the config more readable and mistakes-proof. I just like the layout more this way.
-- The config variables now get exported later on in the script.
 - Added a # TODO: MOVE THESE TO HOOK SCRIPTS comment for the two functions that handle packages.
 
 
