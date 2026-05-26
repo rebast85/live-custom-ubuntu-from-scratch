@@ -108,3 +108,4 @@ function customize_image() {
 #        hitori
 printf ""
 }
+

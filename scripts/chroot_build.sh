@@ -395,3 +395,4 @@ done
 if [[ ${script_stage} == "finish_up" ]]; then
 	printf "The chroot enviroment and image files have finished building!\n"
 fi
+
