@@ -1,11 +1,17 @@
 Things I have changed from mvallim his version:
 
+COMMITTED ON [[ 26.05.2026 ]]:
+
 --> BUILD.SH:
 
 - Converted all echo commands to fprint. Reason: echo works differently on different shells while fprint the same everywhere.
+
 - Bracketed and double-quoted all variables to avoid globbing and text splitting errors (so $VAR becomes "${VAR}").
+
 - Ran the script through shellcheck and used its suggestions to improve a few other things.
+
 - Converted the #write filesystem info command to 'sudo du -sx --block-size=1 chroot | cut -f1 | sudo tee image/casper/filesystem.size >/dev/null' which is a bit faster and cleaner.
+
 - Converted the parts that kept track of the index in the main loop. The inclusion of $(($...)) here is unnecesary (according to shellcheck and web sources).
 	from: end_index=$(($index+1))
 		  end_index=$(($start_index + 1))
@@ -13,6 +19,7 @@ Things I have changed from mvallim his version:
 	to:	  ((end_index = index + 1))
 		  ((end_index = start_index + 1))
 		  for ((ii = start_index; ii < end_index; ii++)); do
+
 
 - DATE variable now actually gets used.
 	I discovered the DATE variable was not used anywhere at all. See below for more.
@@ -25,6 +32,7 @@ Things I have changed from mvallim his version:
 - DATE variable gets used in naming of generated iso.
   This makes it so that a new iso will not overwrite a previously generated one
   and also makes versioning easier. Now one can know when an iso was generated right from the filename.
+
 
 - Changed root detection.
 	Now, the script can be run with sudo, but not in a root shell.
@@ -52,8 +60,31 @@ Things I have changed from mvallim his version:
 	or because it simply was not mounted) the script will proceed to try and unmount the rest.
 
 
+- Added a variable called "script_stage" which gets set during each part of the live system creation.
+	This gets printed after a succesfull run of a stage of the script.
+
+
+- Also made the script check for the last run stage of the script and made it show a more meaningfull message
+  upon succesfully finishing the last stage.
+
+
 
 --> CHROOT_BUILD.SH
+
+- Converted all echo commands to fprint. Reason: echo works differently on different shells while fprint the same everywhere.
+
+- Bracketed and double-quoted all variables to avoid globbing and text splitting errors (so $VAR becomes "${VAR}").
+
+- Ran the script through shellcheck and used its suggestions to improve a few other things.
+
+- Converted the parts that kept track of the index in the main loop. The inclusion of $(($...)) here is unnecesary (according to shellcheck and web sources).
+	from: end_index=$(($index+1))
+		  end_index=$(($start_index + 1))
+		  for ((ii=$start_index; ii<$end_index; ii++)); do
+	to:	  ((end_index = index + 1))
+		  ((end_index = start_index + 1))
+		  for ((ii = start_index; ii < end_index; ii++)); do
+
 
 In function setup_host:
 	- changed 'ln -s /bin/true /sbin/initctl' to 'ln -fs /bin/true /sbin/initctl'
@@ -65,3 +96,28 @@ In function install_pkg:
 	- Replaced 'wireless-tools' with 'iw'.
 		Wireless-tools package is no longer available and has been superseded by iw.
 
+In function build_image():
+	- Made the creation of isolinux/grub.cfg use the 'GRUB_LIVEBOOT_LABEL' and 'GRUB_INSTALL_LABEL' config settings
+	  as defined in config.sh
+
+
+- Added a variable called "script_stage" which gets set during each part of the live system creation.
+	This gets printed after a succesfull run of a stage of the script.
+
+
+- Also made the script check for the last run stage of the script and made it show a more meaningfull message
+  upon succesfully finishing the last stage.
+
+
+
+--> DEFAULT_CONFIG.SH
+- Put the configurables in the beginning of the script, without the export in front of them.
+	I did this to make the config more readable and mistakes-proof. I just like the layout more this way.
+- The config variables now get exported later on in the script.
+- Added a # TODO: MOVE THESE TO HOOK SCRIPTS comment for the two functions that handle packages.
+
+
+
+--> README.MD
+- Added some more explanation to the config section.
+- Added a temporary explanation about how to use hook scripts.
