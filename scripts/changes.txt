@@ -12,7 +12,7 @@ COMMITTED ON [[ 26.05.2026 ]]:
 
 - Converted the #write filesystem info command to 'sudo du -sx --block-size=1 chroot | cut -f1 | sudo tee image/casper/filesystem.size >/dev/null' which is a bit faster and cleaner.
 
-- Converted the parts that kept track of the index in the main loop. The inclusion of $(($...)) here is unnecesary (according to shellcheck and web sources).
+- Converted the parts that kept track of the index in the main loop. The inclusion of $(($...)) here is unnecessary (according to shellcheck and web sources).
 	from: end_index=$(($index+1))
 		  end_index=$(($start_index + 1))
 		  for ((ii=$start_index; ii<$end_index; ii++)); do
@@ -77,7 +77,7 @@ COMMITTED ON [[ 26.05.2026 ]]:
 
 - Ran the script through shellcheck and used its suggestions to improve a few other things.
 
-- Converted the parts that kept track of the index in the main loop. The inclusion of $(($...)) here is unnecesary (according to shellcheck and web sources).
+- Converted the parts that kept track of the index in the main loop. The inclusion of $(($...)) here is unnecessary (according to shellcheck and web sources).
 	from: end_index=$(($index+1))
 		  end_index=$(($start_index + 1))
 		  for ((ii=$start_index; ii<$end_index; ii++)); do
@@ -100,6 +100,10 @@ In function install_pkg:
 		One can configure these things to be configured automatically in config.sh.
 		Settings for locales, keyboard and console are then also used from config.sh.
 		This allows the build script to run fully unattended.
+
+	- Removed 'dpkg-reconfigure locales' at the end of the function because it is unnecessary.
+	  Locales get configured at the start of the install_pkg function now and will either invoke the manual configuration screen
+	  or will be automatically configured, depending on user config.
 
 
 In function build_image():
