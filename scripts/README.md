@@ -21,9 +21,11 @@ Syntax: ./build.sh [start_cmd] [-] [end_cmd]
 2. Make any necessary edits there, the script will pick up `config.sh` over `default_config.sh`.
 
 One must, at the very least, edit TARGET_UBUNTU_VERSION and set it to an Ubuntu distribution codename, i.e. 'focal' or 'resolute'.
-Also take a look at the TARGET_LOCALES_DEFAULT and TARGET_LOCALES_GENERATE options. Use these to set your language.
-
 Please see the configuration file for more options.
+
+## Automation
+It is possible to automate the setup of locales, keyboard and console.
+This can be set in the config file. Please see the entries in the automation section for more information.
 
 ## How to Update
 
