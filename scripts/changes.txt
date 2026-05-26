@@ -125,3 +125,4 @@ In function build_image():
 --> README.MD
 - Added some more explanation to the config section.
 - Added a temporary explanation about how to use hook scripts.
+
