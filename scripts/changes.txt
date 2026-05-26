@@ -96,6 +96,12 @@ In function install_pkg:
 	- Replaced 'wireless-tools' with 'iw'.
 		Wireless-tools package is no longer available and has been superseded by iw.
 
+	- Added a method to allow automatic locales + keyboard-configuration + console charset setup.
+		One can configure these things to be configured automatically in config.sh.
+		Settings for locales, keyboard and console are then also used from config.sh.
+		This allows the build script to run fully unattended.
+
+
 In function build_image():
 	- Made the creation of isolinux/grub.cfg use the 'GRUB_LIVEBOOT_LABEL' and 'GRUB_INSTALL_LABEL' config settings
 	  as defined in config.sh
@@ -111,6 +117,7 @@ In function build_image():
 
 
 --> DEFAULT_CONFIG.SH
+- Added extra config options to allow for automated locales, keyboard and console charset setup.
 - Added a # TODO: MOVE THESE TO HOOK SCRIPTS comment for the two functions that handle packages.
 
 

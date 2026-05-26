@@ -21,12 +21,6 @@ export TARGET_KERNEL_PACKAGE="linux-generic"
 # the volume id, and the hostname of the live environment are set from this name.
 export TARGET_NAME="ubuntu-from-scratch"
 
-# Set the default locale and the locales that should be generated.
-# Please see /usr/share/i18n/SUPPORTED on your system for a full list of locales.
-# or use a search engine online to see what locales you need for your language.
-export TARGET_LOCALES_DEFAULT="en_US.UTF-8"
-export TARGET_LOCALES_GENERATE="en_US.UTF-8 UTF-8"
-
 # The text label shown in GRUB for booting into the live environment
 export GRUB_LIVEBOOT_LABEL="Try Ubuntu FS without installing"
 
@@ -36,6 +30,39 @@ export GRUB_INSTALL_LABEL="Install Ubuntu FS"
 # Used to version the configuration.  If breaking changes occur, manual
 # updates to this file from the default may be necessary.
 export CONFIG_FILE_VERSION="0.4"
+
+
+#####################################################
+#     optional automation for unattended builds     #
+#####################################################
+
+# Should locales be set and generated automatically?
+# If set to 1, please configure locale settings below.
+export TARGET_LOCALES_AUTOMATE="0"
+
+# Set the default locale and the locales that should be automatically generated.
+# Please see /usr/share/i18n/SUPPORTED on your system for a full list of locales.
+# or use a search engine online to see what locales you need for your language.
+export TARGET_LOCALES_DEFAULT="en_US.UTF-8"
+export TARGET_LOCALES_GENERATE="en_US.UTF-8 UTF-8"
+
+# Should keyboard be set up automatically?
+# If set to 1, please configure keyboard settings below.
+export TARGET_KEYBOARD_AUTOMATE="0"
+
+# This configures the automatically used keyboard model, layout, variant and options.
+export TARGET_KEYBOARD_MODEL="pc105"
+export TARGET_KEYBOARD_LAYOUT="us"
+export TARGET_KEYBOARD_VARIANT="intl"
+export TARGET_KEYBOARD_OPTIONS=""
+
+# Should console be set up automatically?
+# If set to 1, please configure console settings below.
+export TARGET_CONSOLE_AUTOMATE="0"
+
+# This configures the automatically used console character map and codeset.
+export TARGET_CONSOLE_CHARMAP="UTF-8"
+export TARGET_CONSOLE_CODESET="Latin1 and Latin5"
 
 
 # TODO: MOVE THESE TO HOOK SCRIPTS
@@ -55,28 +82,29 @@ export TARGET_PACKAGE_REMOVE="
 
 function customize_image() {
     # install graphics and desktop
-    apt-get install -y \
-        plymouth-themes \
-        ubuntu-gnome-desktop \
-        ubuntu-gnome-wallpapers
-
+#    apt-get install -y \
+#        plymouth-themes \
+#        ubuntu-gnome-desktop \
+#        ubuntu-gnome-wallpapers
+#
     # useful tools
-    apt-get install -y \
-        clamav-daemon \
-        terminator \
-        apt-transport-https \
-        curl \
-        vim \
-        nano \
-        less
+#    apt-get install -y \
+#        clamav-daemon \
+#        terminator \
+#        apt-transport-https \
+#        curl \
+#        vim \
+#        nano \
+#        less
 
     # purge
-    apt-get purge -y \
-        transmission-gtk \
-        transmission-common \
-        gnome-mahjongg \
-        gnome-mines \
-        gnome-sudoku \
-        aisleriot \
-        hitori
+#    apt-get purge -y \
+#        transmission-gtk \
+#        transmission-common \
+#        gnome-mahjongg \
+#        gnome-mines \
+#        gnome-sudoku \
+#        aisleriot \
+#        hitori
+printf ""
 }

@@ -135,9 +135,8 @@ function setup_host() {
 }
 
 function debootstrap() {
-	printf "=====> running debootstrap ...\n"
+	printf "=====> running debootstrap ... will take a couple of minutes ...\n"
 	script_stage="debootstrap"
-    printf "=====> running debootstrap ... will take a couple of minutes ...\n"
     sudo debootstrap --arch=amd64 --variant=minbase "${TARGET_UBUNTU_VERSION}" chroot "${TARGET_UBUNTU_MIRROR}"
 }
 

@@ -100,10 +100,10 @@ function install_pkg() {
 
 	# TODO: MOVE THESE TO-BE INSTALLED PACKAGES LIST TO CHROOT HOOK SCRIPTS
 	# (hooks/chroot/0001_install_standard_packages.sh)
-	# (hooks/chroot/0002_install_locales.sh)
+	# (hooks/chroot/0002_setup_locales_keyboard_console.sh)
 	# (hooks/chroot/0003_install_bootloader.sh)
 	# (hooks/chroot/0004_install_kernel.sh)
-	# (hooks/chroot/0005_install_installer.sh)
+	# (hooks/chroot/0005_install_ubuntu_installer.sh)
 	# REASON: Users can update/change default package lists without having to edit this script.
     # install live packages
 
@@ -131,18 +131,51 @@ function install_pkg() {
             ;;
     esac
 
-	# Added this to automate locale generation so script can run unattended.
-    echo "${TARGET_LOCALES_GENERATE}" > /etc/locale.gen
+	# Added this to allow automated locale generation so script can run unattended.
+	if [[ "${TARGET_LOCALES_AUTOMATE}" == "1" ]]; then
+    	echo "${TARGET_LOCALES_GENERATE}" > /etc/locale.gen
 
-	debconf-set-selections <<EOF
+		debconf-set-selections <<EOF
 locales locales/default_environment_locale select ${TARGET_LOCALES_DEFAULT}
 locales locales/locales_to_be_generated multiselect ${TARGET_LOCALES_GENERATE}
 EOF
 
-	DEBIAN_FRONTEND=noninteractive apt-get install -y locales
-	locale-gen
-	update-locale LANG="${TARGET_LOCALES_DEFAULT}"
+		DEBIAN_FRONTEND=noninteractive apt-get install -y locales
+		locale-gen
+		update-locale LANG="${TARGET_LOCALES_DEFAULT}"
+	else
+	 	apt-get install locales -y
+	 	# For some reason this is required because install process does no longer
+	 	# show the configure locales screen if I take this step after installing default packages.
+	 	dpkg-reconfigure locales
+	fi
 
+
+	# Added this to allow automated keyboard configuration so script can run unattended.
+	if [[ "${TARGET_KEYBOARD_AUTOMATE}" == "1" ]]; then
+		debconf-set-selections <<EOF
+keyboard-configuration keyboard-configuration/modelcode string ${TARGET_KEYBOARD_MODEL}
+keyboard-configuration keyboard-configuration/layoutcode string ${TARGET_KEYBOARD_LAYOUT}
+keyboard-configuration keyboard-configuration/variantcode string ${TARGET_KEYBOARD_VARIANT}
+keyboard-configuration keyboard-configuration/optionscode string ${TARGET_KEYBOARD_OPTIONS}
+EOF
+
+		DEBIAN_FRONTEND=noninteractive apt-get install -y keyboard-configuration
+	else
+		apt-get install -y keyboard-configuration
+	fi
+
+
+	# Added this to allow automated console setup so script can run unattended.
+	if [[ "${TARGET_CONSOLE_AUTOMATE}" == "1" ]]; then
+		debconf-set-selections <<EOF
+console-setup console-setup/charmap47 select ${TARGET_CONSOLE_CHARMAP}
+console-setup console-setup/codeset47 select ${TARGET_CONSOLE_CODESET}
+EOF
+		DEBIAN_FRONTEND=noninteractive apt-get install -y console-setup
+	else
+		apt-get install -y console-setup
+	fi
 
 	apt-get install -y \
         grub-common \

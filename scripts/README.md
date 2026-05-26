@@ -21,6 +21,8 @@ Syntax: ./build.sh [start_cmd] [-] [end_cmd]
 2. Make any necessary edits there, the script will pick up `config.sh` over `default_config.sh`.
 
 One must, at the very least, edit TARGET_UBUNTU_VERSION and set it to an Ubuntu distribution codename, i.e. 'focal' or 'resolute'.
+Also take a look at the TARGET_LOCALES_DEFAULT and TARGET_LOCALES_GENERATE options. Use these to set your language.
+
 Please see the configuration file for more options.
 
 ## How to Update
@@ -40,13 +42,14 @@ These hook files can greatly extend the functionality of the build script.
 These files get called right before the chroot is set up and entered
 and during the chroot stage of the script, after all default packages have been installed.
 
-They are called pre_chroot_000_function.sh and chroot_000_function.sh, where function can be a
-descriptive name of the script after pre_chroot_ or chroot_. The number determines in which order they get run.
+They are located in hooks/pre_chroot/ and hooks/chroot/.
+They are called 0000_script_name.sh. The number determines the order which they are run in and the names should be
+descriptive of the functionality of the hook script.
 
 One can use these script to do all kinds of neat stuff, like copying some configuration files to the chroot
 or installing additional packages in the chroot.
 
-There already are a few hook scripts in hooks/. They are used during the default live iso creation process.
+There already are a few hook scripts in hooks/chroot. They are used during the default live iso creation process.
 You can edit them but it would be wise not to remove them, you would end up with a dysfunctional iso if you do so.
 
 Please see the example scripts, included in hooks/examples to get some idea of what is possible with the hook scripts.
