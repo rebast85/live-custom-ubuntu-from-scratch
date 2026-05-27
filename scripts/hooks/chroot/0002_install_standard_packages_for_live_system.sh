@@ -2,17 +2,19 @@
 
 apt-get install -y \
         sudo \
-        ubuntu-standard \
+        binutils \
         casper \
         discover \
+        inetutils-ping \
+		iw \
         laptop-detect \
+        mtools \
         os-prober \
+        netplan.io \
         network-manager \
         net-tools \
-		iw \
-		unzip \
-		binutils \
-		mtools
+        ubuntu-standard \
+		unzip
 
 case ${TARGET_UBUNTU_VERSION} in
 	"focal" | "bionic")
