@@ -1,7 +1,5 @@
 Things I have changed from mvallim his version:
 
-COMMITTED ON [[ 26.05.2026 ]]:
-
 --> BUILD.SH:
 
 - Converted all echo commands to fprint. Reason: echo works differently on different shells while fprint the same everywhere.
@@ -59,6 +57,14 @@ COMMITTED ON [[ 26.05.2026 ]]:
 	If one directory cannot be unmounted (because of it still being used
 	or because it simply was not mounted) the script will proceed to try and unmount the rest.
 
+- Added a function to run hooks and added a call to that function to run pre-chroot hooks before chrooting.
+
+- In function build_iso:
+	- Fixed up the error of mv not being able to find chroot/image and crashing the script
+	  when re-running build_iso by including a check to see if chroot/image actually exists.
+	- Also included a check to see if ./image actually exists.
+
+
 
 - Added a variable called "script_stage" which gets set during each part of the live system creation.
 	This gets printed after a succesfull run of a stage of the script.
@@ -109,6 +115,14 @@ In function install_pkg:
 In function build_image():
 	- Made the creation of isolinux/grub.cfg use the 'GRUB_LIVEBOOT_LABEL' and 'GRUB_INSTALL_LABEL' config settings
 	  as defined in config.sh
+	- Temporarely removed the install option until I figure out how to set that up so users can start install from grub menu, like
+	  on the official isos.
+
+- Added a function to run hooks and added a call to that function to run chroot hooks during chroot.
+	- Also moved the installed packages lists (default packages, bootloader, grub etc) to chroot hook scripts.
+	- Removed the customize_image function from config.sh and moved it to a chroot hook script.
+		- Reason: Now users can update the package lists without having to edit the chroot_build.sh script.
+	- Changed graphical installer from ubiquity to calamares.
 
 
 - Added a variable called "script_stage" which gets set during each part of the live system creation.
@@ -123,6 +137,8 @@ In function build_image():
 --> DEFAULT_CONFIG.SH
 - Added extra config options to allow for automated locales, keyboard and console charset setup.
 - Added a # TODO: MOVE THESE TO HOOK SCRIPTS comment for the two functions that handle packages.
+- Moved the customize_image function to chroot hook script.
+- Moved the TARGET_PACKAGES_REMOVE export to hook script.
 
 
 
