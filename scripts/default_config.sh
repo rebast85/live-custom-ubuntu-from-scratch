@@ -29,7 +29,7 @@ export GRUB_INSTALL_LABEL="Install Ubuntu FS"
 
 # Used to version the configuration.  If breaking changes occur, manual
 # updates to this file from the default may be necessary.
-export CONFIG_FILE_VERSION="0.4"
+export CONFIG_FILE_VERSION="0.5"
 
 
 #####################################################
@@ -65,47 +65,7 @@ export TARGET_CONSOLE_CHARMAP="UTF-8"
 export TARGET_CONSOLE_CODESET="Latin1 and Latin5"
 
 
-# TODO: MOVE THESE TO HOOK SCRIPTS
-# REASON: These functions do not belong in a config file IMHO.
-
-# Packages to be removed from the target system after installation completes succesfully
-export TARGET_PACKAGE_REMOVE="
-    ubiquity \
-    casper \
-    discover \
-    laptop-detect \
-    os-prober \
-"
-
-# Package customisation function.  Update this function to customize packages
-# present on the installed system.
-
-function customize_image() {
-    # install graphics and desktop
-#    apt-get install -y \
-#        plymouth-themes \
-#        ubuntu-gnome-desktop \
-#        ubuntu-gnome-wallpapers
-#
-    # useful tools
-#    apt-get install -y \
-#        clamav-daemon \
-#        terminator \
-#        apt-transport-https \
-#        curl \
-#        vim \
-#        nano \
-#        less
-
-    # purge
-#    apt-get purge -y \
-#        transmission-gtk \
-#        transmission-common \
-#        gnome-mahjongg \
-#        gnome-mines \
-#        gnome-sudoku \
-#        aisleriot \
-#        hitori
-printf ""
-}
-
+####### !! NOTICE !! #######
+# function customize_image has been moved to a chroot hook script.
+# export TARGET_PACKAGE_REMOVE has been moved to a chroot hook script also.
+# Please see the files in hooks/chroot and edit them there.
