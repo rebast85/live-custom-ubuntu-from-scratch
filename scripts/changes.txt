@@ -63,8 +63,12 @@ Things I have changed from mvallim his version:
 	- Fixed up the error of mv not being able to find chroot/image and crashing the script
 	  when re-running build_iso by including a check to see if chroot/image actually exists.
 	- Also included a check to see if ./image actually exists.
+	- Added functionality so one can configure mksquashfs to use either gzip or xz compression.
+		- Using gzip to create a quick test iso is much, much faster.
 
-
+- Added a fix for when the image directory already exists in script directory.
+	- First, script check if image directory exists in chroot. If so, it deletes image directory in script dir
+		and then moves the new image dir to there.
 
 - Added a variable called "script_stage" which gets set during each part of the live system creation.
 	This gets printed after a succesfull run of a stage of the script.
@@ -136,7 +140,7 @@ In function build_image():
 
 --> DEFAULT_CONFIG.SH
 - Added extra config options to allow for automated locales, keyboard and console charset setup.
-- Added a # TODO: MOVE THESE TO HOOK SCRIPTS comment for the two functions that handle packages.
+- Added extra config option to configure mksquashfs compression type.
 - Moved the customize_image function to chroot hook script.
 - Moved the TARGET_PACKAGES_REMOVE export to hook script.
 
