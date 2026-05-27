@@ -8,7 +8,7 @@ This script builds a bootable ubuntu ISO image
 Supported commands : setup_host debootstrap run_chroot build_iso
 
 Syntax: ./build.sh [start_cmd] [-] [end_cmd]
-  run from start_cmd to end_end
+  run from start_cmd to end_cmd
   if start_cmd is omitted, start from first command
   if end_cmd is omitted, end with last command
   enter single cmd to run the specific command
