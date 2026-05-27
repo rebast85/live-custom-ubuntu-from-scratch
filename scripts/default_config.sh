@@ -27,6 +27,10 @@ export GRUB_LIVEBOOT_LABEL="Try Ubuntu FS without installing"
 # The text label shown in GRUB for starting installation
 export GRUB_INSTALL_LABEL="Install Ubuntu FS"
 
+# You can set mksquashfs compression to either 'gzip' or 'xz'.
+# Use xz for final images. use gzip to quickly create a test iso for your customized ubuntu.
+export MKSQUASHFS_COMPRESSION="xz"
+
 # Used to version the configuration.  If breaking changes occur, manual
 # updates to this file from the default may be necessary.
 export CONFIG_FILE_VERSION="0.5"
