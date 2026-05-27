@@ -115,6 +115,13 @@ In function install_pkg:
 	  Locales get configured at the start of the install_pkg function now and will either invoke the manual configuration screen
 	  or will be automatically configured, depending on user config.
 
+	- Added configuration for netplan.io. Without it, my isos would start and leave me without any network connection.
+		Apparently, the default 01-network-manager-all.yaml in /etc/netplan/ does not get created automatically upon install of netplan.io.
+		It was there on a vanilla ubuntu live iso so I copied the contents and now networking stuff stuff works again.
+
+	- Removed Network-Manager config. It is unnecessary to create, the default config that gets installed by the package works.
+		That default config is also used in the vanilla ubuntu live isos.
+
 
 In function build_image():
 	- Made the creation of isolinux/grub.cfg use the 'GRUB_LIVEBOOT_LABEL' and 'GRUB_INSTALL_LABEL' config settings
