@@ -113,23 +113,10 @@ function install_pkg() {
     script_stage="install_pkg"
 
     # First, we do an upgrade so the base system is up to date.
-    #apt-get -y upgrade
+    apt-get -y upgrade
 
     # Run chroot hook scripts
 	run_hook_scripts "tmp/hooks/chroot"
-
-    # network manager
-#    cat <<EOF > /etc/NetworkManager/NetworkManager.conf
-#[main]
-#rc-manager=none
-#plugins=ifupdown,keyfile
-#dns=systemd-resolved
-
-#[ifupdown]
-#managed=false
-#EOF
-
-#    dpkg-reconfigure network-manager
 
     # remove unused and clean up apt cache
     apt-get autoremove -y
