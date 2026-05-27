@@ -37,7 +37,6 @@ from the default file to ensure the new/changed variables are as desired.  Once 
 CONFIG_FILE_VERSION should match the default and the build will run.
 
 
-## UPCOMING, HOOK SCRIPTS NOT IMPLEMENTED YET
 ## How to use hook scripts
 
 This version of the live-custom-ubuntu-from-scratch script has the ability to use hook files.
@@ -57,4 +56,3 @@ There already are a few hook scripts in hooks/chroot. They are used during the d
 You can edit them but it would be wise not to remove them, you would end up with a dysfunctional iso if you do so.
 
 Please see the example scripts, included in hooks/examples to get some idea of what is possible with the hook scripts.
-
