@@ -194,6 +194,7 @@ function build_iso() {
 	# check for existance of chroot/image and ./image
  	# move image artifacts if they are still in the chroot directory
     if [[ -e chroot/image ]]; then
+    	if [[ -e ./image ]]; then sudo rm -rf ./image; fi
     	sudo mv chroot/image .
     elif [[ ! -e ./image ]]; then
     	 printf "Error, image folder not found! Did run_chroot execute succesfully?\n"
@@ -201,11 +202,25 @@ function build_iso() {
     	 exit 1
     fi
 
+	# read mksquashfs compression type from config.sh and set options accordingly.
+	case "${MKSQUASHFS_COMPRESSION}" in
+    	xz)
+    	    mksquashfs_comp_opts=(xz -b 1M -Xdict-size 100%)
+        	;;
+    	gzip)
+        	mksquashfs_comp_opts=(gzip -b 1M)
+        	;;
+    	*)
+        	printf "Wrong compression type set for mksquashfs!\nPlease edit config.sh and set an appropriate type.\n."
+        	exit 1
+        	;;
+	esac
+
     # compress rootfs
     sudo mksquashfs chroot image/casper/filesystem.squashfs \
         -noappend -no-duplicates -no-recovery \
         -wildcards \
-        -comp xz -b 1M -Xdict-size 100% \
+        -comp "${mksquashfs_comp_opts[@]}" \
         -e "var/cache/apt/archives/*" \
         -e "root/*" \
         -e "root/.*" \
