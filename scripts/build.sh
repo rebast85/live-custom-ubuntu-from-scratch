@@ -4,7 +4,7 @@ set -e                  # exit on error
 set -o pipefail         # exit on pipeline error
 set -u                  # treat unset variable as error
 
-SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+export SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 
 CMD=(setup_host debootstrap run_chroot build_iso)
 
@@ -39,7 +39,7 @@ function help() {
     fi
     printf "Supported commands : %s\n\n" "${CMD[*]}"
     printf "Syntax: %s [start_cmd] [-] [end_cmd]\n" "${0}"
-    printf "\trun from start_cmd to end_end\n"
+    printf "\trun from start_cmd to end_cmd\n"
     printf "\tif start_cmd is omitted, start from first command\n"
     printf "\tif end_cmd is omitted, end with last command\n"
     printf "\tenter single cmd to run the specific command\n"
@@ -73,16 +73,17 @@ function safe_umount() {
     local path="${1}"
 
     if mountpoint -q "${path}"; then
-        sudo umount -l "${path}"
+     	printf "Unmounting: %s\n" "${path}"
+        sudo umount "${path}"
     fi
 }
 
 function chroot_exit_teardown() {
-    safe_umount "${SCRIPT_DIR}/chroot/proc"
-    safe_umount "${SCRIPT_DIR}/chroot/sys"
-    safe_umount "${SCRIPT_DIR}/chroot/dev/pts"
-    safe_umount "${SCRIPT_DIR}/chroot/dev"
-    safe_umount "${SCRIPT_DIR}/chroot/run"
+safe_umount "${SCRIPT_DIR}/chroot/dev/pts"
+safe_umount "${SCRIPT_DIR}/chroot/dev"
+safe_umount "${SCRIPT_DIR}/chroot/proc"
+safe_umount "${SCRIPT_DIR}/chroot/sys"
+safe_umount "${SCRIPT_DIR}/chroot/run"
 }
 
 function check_host() {
@@ -118,7 +119,7 @@ function load_config() {
 # Verify that necessary configuration values are set and they are valid
 function check_config() {
     local expected_config_version
-    expected_config_version="0.4"
+    expected_config_version="0.5"
 
     if [[ "${CONFIG_FILE_VERSION}" != "${expected_config_version}" ]]; then
         >&2 printf "Invalid or old config version %s, expected %s. Please update your configuration file from the default.\n" "${CONFIG_FILE_VERSION}" "${expected_config_version}"
@@ -140,21 +141,38 @@ function debootstrap() {
     sudo debootstrap --arch=amd64 --variant=minbase "${TARGET_UBUNTU_VERSION}" chroot "${TARGET_UBUNTU_MIRROR}"
 }
 
+# Run available hook scrips from directory in hooks
+function run_hook_scripts() {
+    hook_dir="${1}"
+
+    # Don't mess up when pre_chroot is empty.
+    shopt -s nullglob
+
+    for hook in "${hook_dir}"/*.sh; do
+    	printf "=====> running pre-chroot hook: %s\n" "$(basename "${hook}")"
+        . "${hook}"
+    done
+
+    shopt -u nullglob
+}
+
 function run_chroot() {
     printf "=====> running run_chroot ...\n"
 	script_stage="run_chroot"
 
-	# TODO: ADD CALLS TO PRE_CHROOT HOOK SCRIPTS.
+	# Run pre_chroot hook scripts
+	run_hook_scripts "${SCRIPT_DIR}/hooks/pre_chroot"
 
     chroot_enter_setup
 
-    # TODO: ADD FUNCTION TO COPY ALL CHROOT HOOK SCRIPTS TO CHROOT/ROOT/HOOKS
     # Setup build scripts in chroot environment
     sudo ln -f "${SCRIPT_DIR}"/chroot_build.sh chroot/root/chroot_build.sh
     sudo ln -f "${SCRIPT_DIR}"/default_config.sh chroot/root/default_config.sh
     if [[ -f "${SCRIPT_DIR}/config.sh" ]]; then
         sudo ln -f "${SCRIPT_DIR}"/config.sh chroot/root/config.sh
     fi
+    # Copy hook scripts to build enviroment
+	sudo cp -afv "${SCRIPT_DIR}/hooks" "${SCRIPT_DIR}/chroot/tmp/" > /dev/null
 
     # Launch into chroot environment to build install image.
     sudo chroot chroot /usr/bin/env DEBIAN_FRONTEND="${DEBIAN_FRONTEND:-readline}" /root/chroot_build.sh -
@@ -172,8 +190,16 @@ function run_chroot() {
 function build_iso() {
     printf "=====> running build_iso ...\n"
 	script_stage="build_iso"
-    # move image artifacts
-    sudo mv chroot/image .
+
+	# check for existance of chroot/image and ./image
+ 	# move image artifacts if they are still in the chroot directory
+    if [[ -e chroot/image ]]; then
+    	sudo mv chroot/image .
+    elif [[ ! -e ./image ]]; then
+    	 printf "Error, image folder not found! Did run_chroot execute succesfully?\n"
+    	 printf "Quitting...\n"
+    	 exit 1
+    fi
 
     # compress rootfs
     sudo mksquashfs chroot image/casper/filesystem.squashfs \

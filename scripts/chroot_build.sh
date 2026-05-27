@@ -21,7 +21,7 @@ function help() {
     fi
     printf "Supported commands : %s\n\n" "${CMD[*]}"
     printf "Syntax: %s [start_cmd] [-] [end_cmd]\n" "${0}"
-    printf "\trun from start_cmd to end_end\n"
+    printf "\trun from start_cmd to end_cmd\n"
     printf "\tif start_cmd is omitted, start from first command\n"
     printf "\tif end_cmd is omitted, end with last command\n"
     printf "\tenter single cmd to run the specific command\n"
@@ -93,129 +93,46 @@ function load_config() {
     fi
 }
 
+# Run available hook scrips from directory in hooks
+function run_hook_scripts() {
+    hook_dir="${1}"
+
+    # Don't mess up when pre_chroot is empty.
+    shopt -s nullglob
+
+    for hook in "${hook_dir}"/*.sh; do
+    	printf "=====> running chroot hook: %s\n" "$(basename "${hook}")"
+        . "${hook}"
+    done
+
+    shopt -u nullglob
+}
+
 function install_pkg() {
     printf "=====> running install_pkg ... will take a long time ...\n"
     script_stage="install_pkg"
-    apt-get -y upgrade
 
-	# TODO: MOVE THESE TO-BE INSTALLED PACKAGES LIST TO CHROOT HOOK SCRIPTS
-	# (hooks/chroot/0001_setup_locales_keyboard_console.sh)
-	# (hooks/chroot/0002_install_standard_packages.sh)
-	# (hooks/chroot/0003_install_bootloader.sh)
-	# (hooks/chroot/0004_install_kernel.sh)
-	# (hooks/chroot/0005_install_ubuntu_installer.sh)
-	# REASON: Users can update/change default package lists without having to edit this script.
-    # install live packages
+    # First, we do an upgrade so the base system is up to date.
+    #apt-get -y upgrade
 
-    	# Added this to allow automated locale generation so script can run unattended.
-	if [[ "${TARGET_LOCALES_AUTOMATE}" == "1" ]]; then
-		printf "LOCALES ARE CONFIGURED AUTOMATICALLY!\n"
-    	echo "${TARGET_LOCALES_GENERATE}" > /etc/locale.gen
-		debconf-set-selections <<EOF
-locales locales/default_environment_locale select ${TARGET_LOCALES_DEFAULT}
-locales locales/locales_to_be_generated multiselect ${TARGET_LOCALES_GENERATE}
-EOF
+    # Run chroot hook scripts
+	run_hook_scripts "tmp/hooks/chroot"
 
-		DEBIAN_FRONTEND=noninteractive apt-get install -y locales
-		locale-gen
-		update-locale LANG="${TARGET_LOCALES_DEFAULT}"
-	else
-	 	apt-get install locales -y
-	fi
+    # network manager
+#    cat <<EOF > /etc/NetworkManager/NetworkManager.conf
+#[main]
+#rc-manager=none
+#plugins=ifupdown,keyfile
+#dns=systemd-resolved
 
+#[ifupdown]
+#managed=false
+#EOF
 
-	# Added this to allow automated keyboard configuration so script can run unattended.
-	if [[ "${TARGET_KEYBOARD_AUTOMATE}" == "1" ]]; then
-		printf "KEYBOARD IS CONFIGURED AUTOMATICALLY!\n"
-		debconf-set-selections <<EOF
-keyboard-configuration keyboard-configuration/modelcode string ${TARGET_KEYBOARD_MODEL}
-keyboard-configuration keyboard-configuration/layoutcode string ${TARGET_KEYBOARD_LAYOUT}
-keyboard-configuration keyboard-configuration/variantcode string ${TARGET_KEYBOARD_VARIANT}
-keyboard-configuration keyboard-configuration/optionscode string ${TARGET_KEYBOARD_OPTIONS}
-EOF
-
-		DEBIAN_FRONTEND=noninteractive apt-get install -y keyboard-configuration
-	else
-		apt-get install -y keyboard-configuration
-	fi
-
-
-	# Added this to allow automated console setup so script can run unattended.
-	if [[ "${TARGET_CONSOLE_AUTOMATE}" == "1" ]]; then
-		printf "CONSOLE IS CONFIGURED AUTOMATICALLY!\n"
-		debconf-set-selections <<EOF
-console-setup console-setup/charmap47 select ${TARGET_CONSOLE_CHARMAP}
-console-setup console-setup/codeset47 select ${TARGET_CONSOLE_CODESET}
-EOF
-		DEBIAN_FRONTEND=noninteractive apt-get install -y console-setup
-	else
-		apt-get install -y console-setup
-	fi
-
-    apt-get install -y \
-        sudo \
-        ubuntu-standard \
-        casper \
-        discover \
-        laptop-detect \
-        os-prober \
-        network-manager \
-        net-tools \
-        wpagui \
-		iw \
-		mtools \
-		unzip \
-		binutils
-
-	case ${TARGET_UBUNTU_VERSION} in
-        "focal" | "bionic")
-            apt-get install -y lupin-casper
-            ;;
-        *)
-            printf "Package lupin-casper is not needed. Skipping.\n"
-            ;;
-    esac
-
-	apt-get install -y \
-        grub-common \
-        grub-gfxpayload-lists \
-        grub-pc \
-        grub-pc-bin \
-        grub2-common \
-        grub-efi-amd64-signed \
-        shim-signed
-
-    # install kernel
-    apt-get install -y --no-install-recommends "${TARGET_KERNEL_PACKAGE}"
-
-    # graphic installer - ubiquity
-    apt-get install -y \
-        ubiquity \
-        ubiquity-casper \
-        ubiquity-frontend-gtk \
-        ubiquity-slideshow-ubuntu \
-        ubiquity-ubuntu-artwork
-
-	# TODO: TURN THIS INTO SEPARATE CHROOT HOOK SCRIPT (hooks/chroot/0090_install_custom_packages.sh)
-    # Call into config function
-    customize_image
+#    dpkg-reconfigure network-manager
 
     # remove unused and clean up apt cache
     apt-get autoremove -y
-
-    # network manager
-    cat <<EOF > /etc/NetworkManager/NetworkManager.conf
-[main]
-rc-manager=none
-plugins=ifupdown,keyfile
-dns=systemd-resolved
-
-[ifupdown]
-managed=false
-EOF
-
-    dpkg-reconfigure network-manager
-
     apt-get clean -y
 }
 
@@ -254,11 +171,6 @@ menuentry "${GRUB_LIVEBOOT_LABEL}" {
     initrd /casper/initrd
 }
 
-menuentry "${GRUB_INSTALL_LABEL}" {
-    linux /casper/vmlinuz boot=casper only-ubiquity quiet splash ---
-    initrd /casper/initrd
-}
-
 menuentry "Check disc for defects" {
     linux /casper/vmlinuz boot=casper integrity-check quiet splash ---
     initrd /casper/initrd
@@ -285,7 +197,7 @@ EOF
 
     cp -v casper/filesystem.manifest casper/filesystem.manifest-desktop
 
-	# TODO: MAKE THIS FUNCTION CALL A CHROOT HOOK SCRIPT (hooks/chroot/0010_remove_packages_after_install_list.sh)
+	# Set packages to remove from target system after an installation.
     for pkg in ${TARGET_PACKAGE_REMOVE}; do
         sudo sed -i "/${pkg}/d" casper/filesystem.manifest-desktop
     done
